@@ -5,6 +5,7 @@ class base {
 	constructor(options={}){
 		this.API_URL = options.API_URL || "https://api.coinmarketcap.com/v1/ticker";
 		this.convert = options.convert || "USD";
+		this.convert = this.convert.toLowerCase();
 	}
 
 	_getJSON(url, callback){
@@ -27,6 +28,20 @@ class onDemand extends base {
 
 	constructor(options={}){
 		super(options);
+	}
+
+	cached(callback){
+		this._getJSON(`/?convert=${this.convert}`, (coins) => {
+			if(coins && callback){
+				var response = {};
+				response.data = coins;
+				response.get = function(coin){ return this.data.find(o => o.symbol === coin) || this.data.find(o => o.id === coin); }
+				response.getTop = function(top){return this.data.slice(0, top);}
+				response.getAll = function(){ return this.data; }
+				callback(response)
+			}
+		});
+		return this;
 	}
 
 	get(coin, callback){
@@ -57,47 +72,116 @@ class onDemand extends base {
 	}
 }
 
-class cached extends base {
+class events extends base {
 	constructor(options={}){
 		super(options);
 		this.refresh = options.refresh*1000 || 60*1000;
-		this.start();
+		this.events_update = [];
+		this.events_greater = [];
+		this.events_lesser = [];
+		this.events_percent1h = [];
+		this.events_percent24h = [];
+		this.events_percent7d = [];
+		this.emitter();
+		setInterval(this.emitter.bind(this), this.refresh);
 	}
 
-	start(){
-		if(this.refresh > 0){
-			this.update();
-			this._interval_id = setInterval(this.update.bind(this), this.refresh);
-		}
-	}
+	emitter(){
+		this._getJSON(`/?convert=${this.convert}`, (coins) => {
+			if(coins){
 
-	stop(){
-		if(this._interval_id){
-			clearInterval(this._interval_id);
-		}
-	}
+				this.events_update.forEach(event => {
+					var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+					if(res){
+						event.callback(res)
+					}
+				});
 
-	update(callback){
-		var self = this;
-		this._getJSON(`/?convert=${this.convert}`, (response) => {
-			if(response){ self.data = response; }
+				this.events_greater.forEach(event => {
+					var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+					if(res){
+						if(res["price_"+this.convert] >= event.price){
+							event.callback(res)
+						}
+					}
+				});
+
+				this.events_lesser.forEach(event => {
+					var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+					if(res){
+						if(res["price_"+this.convert] <= event.price){
+							event.callback(res)
+						}
+					}
+				});
+
+				this.events_percent1h.forEach(event => {
+					var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+					if(res){
+						if(event.percent < 0 && res.percent_change_1h <= event.percent ){
+							event.callback(res)
+						} else if(event.percent > 0 && res.percent_change_1h >= event.percent){
+							event.callback(res)
+						} else if(event.percent == 0 && res.percent_change_1h == 0){
+							event.callback(res)
+						}
+					}
+				});
+
+				this.events_percent24h.forEach(event => {
+					var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+					if(res){
+						if(event.percent < 0 && res.percent_change_24h <= event.percent ){
+							event.callback(res)
+						} else if(event.percent > 0 && res.percent_change_24h >= event.percent){
+							event.callback(res)
+						} else if(event.percent == 0 && res.percent_change_24h == 0){
+							event.callback(res)
+						}
+					}
+				});
+
+				this.events_percent7d.forEach(event => {
+					var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+					if(res){
+						if(event.percent < 0 && res.percent_change_7d <= event.percent ){
+							event.callback(res)
+						} else if(event.percent > 0 && res.percent_change_7d >= event.percent){
+							event.callback(res)
+						} else if(event.percent == 0 && res.percent_change_7d == 0){
+							event.callback(res)
+						}
+					}
+				});
+			}
 		});
-		return this;
 	}
 
-	get(coin){
-		return self.data.find(o => o.symbol === coin) || self.data.find(o => o.id === coin);
+	on(coin, callback){
+		this.events_update.push({coin, callback});
 	}
 
-	getAll(){
-		return self.data;
+	onGreater(coin, price, callback){
+		this.events_greater.push({coin, price, callback});
 	}
 
-	getTop(top){
-		return self.data.slice(0, top);
+	onLesser(coin, price, callback){
+		this.events_lesser.push({coin, price, callback});
+	}
+
+	onPercentChange1h(coin, percent, callback){
+		this.events_percent1h.push({coin, percent, callback});
+	}
+
+	onPercentChange24h(coin, percent, callback){
+		this.events_percent24h.push({coin, percent, callback});
+	}
+
+	onPercentChange7d(coin, percent, callback){
+		this.events_percent7d.push({coin, percent, callback});
 	}
 
 
 }
 
-module.exports = {onDemand, cached};
+module.exports = {onDemand, events};
