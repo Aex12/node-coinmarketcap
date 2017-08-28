@@ -1,6 +1,7 @@
 var request = require('request');
 
-class CoinMarketCap {
+class base {
+
 	constructor(options={}){
 		this.API_URL = options.API_URL || "https://api.coinmarketcap.com/v1/ticker";
 		this.convert = options.convert || "USD";
@@ -19,6 +20,13 @@ class CoinMarketCap {
 				return this;
 			}
 		});
+	}
+}
+
+class onDemand extends base {
+
+	constructor(options={}){
+		super(options);
 	}
 
 	get(coin, callback){
@@ -47,7 +55,49 @@ class CoinMarketCap {
 			return false;
 		}
 	}
+}
+
+class cached extends base {
+	constructor(options={}){
+		super(options);
+		this.refresh = options.refresh*1000 || 60*1000;
+		this.start();
+	}
+
+	start(){
+		if(this.refresh > 0){
+			this.update();
+			this._interval_id = setInterval(this.update.bind(this), this.refresh);
+		}
+	}
+
+	stop(){
+		if(this._interval_id){
+			clearInterval(this._interval_id);
+		}
+	}
+
+	update(callback){
+		var self = this;
+		this._getJSON(`/?convert=${this.convert}`, (response) => {
+			if(response){ self.data = response; }
+		});
+		return this;
+	}
+
+	get(coin){
+		return self.data.find(o => o.symbol === coin) || self.data.find(o => o.id === coin);
+	}
+
+	getAll(){
+		return self.data;
+	}
+
+	getTop(top){
+		return self.data.slice(0, top);
+	}
+
 
 }
 
-module.exports = CoinMarketCap;
+module.exports = {onDemand, cached};
