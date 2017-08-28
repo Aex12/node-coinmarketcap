@@ -1,6 +1,6 @@
 {
   "name": "node-coinmarketcap",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Node module to retrieve information from CoinMarketCap",
   "main": "index.js",
   "scripts": {
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/Aex12/node-coinmarketcap/issues"
   },
-  "homepage": "https://github.com/Aex12/node-coinmarketcap#readme"
+  "homepage": "https://github.com/Aex12/node-coinmarketcap#readme",
+  "dependencies": {
+    "request": "^2.81.0"
+  }
 }
