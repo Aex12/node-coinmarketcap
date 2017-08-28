@@ -2,6 +2,7 @@
 
 A node module to connect to CoinMarketCap API and retrieve prices and statistics of cryptocurrencies.
 
+It supports events to get alerts on price status.
 
 ## Installation
 

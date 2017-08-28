@@ -121,7 +121,9 @@ class CoinMarketCap {
 
 	get(coin, callback){
 		if(callback){
-			this._getJSON(`/${coin}/?convert=${this.convert}`, callback);
+			this._getJSON(`/${coin}/?convert=${this.convert}`, (res) => {
+				if(res){callback(res[0]);}
+			});
 			return this;
 		} else {
 			return false;
