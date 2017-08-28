@@ -12,14 +12,14 @@ $ npm install node-coinmarketcap
 ## Usage Example
 ```js
 var CoinMarketCap = require("node-coinmarketcap");
-var coinmarketcap = new CoinMarketCap.onDemand();
+var coinmarketcap = new CoinMarketCap();
 // If you want to check a single coin, use get() (You need to supply the coinmarketcap id of the cryptocurrency, not the symbol)
-// If you want to use symbols instead of id, use cached.
+// If you want to use symbols instead of id, use multi.
 coinmarketcap.get("bitcoin", coin => {
   console.log(coin.price_usd); // Prints the price in USD of BTC at the moment.
 });
-// If you want to check multiple coins, use cached():
-coinmarketcap.cached(coins => {
+// If you want to check multiple coins, use multi():
+coinmarketcap.multi(coins => {
   console.log(coins.get("BTC").price_usd); // Prints price of BTC in USD
   console.log(coins.get("ETH").price_usd); // Print price of ETH in USD
   console.log(coins.get("ETH").price_btc); // Print price of ETH in BTC
@@ -32,10 +32,11 @@ coinmarketcap.cached(coins => {
 var CoinMarketCap = require("node-coinmarketcap");
 
 var options = {
+	events: true, // Enable event system
 	refresh: 60, // Refresh time in seconds (Default: 60)
 	convert: "EUR" // Convert price to different currencies. (Default USD)
 }
-var coinmarketcap = new CoinMarketCap.events(options);
+var coinmarketcap = new CoinMarketCap(options);
 
 // Trigger this event when BTC price is greater than 4000
 coinmarketcap.onGreater("BTC", 4000, (coin) => {

@@ -1,10 +1,11 @@
 var CoinMarketCap = require(".")
 
 var options = {
+	events: true,
 	refresh: 60, // Refresh time in seconds (Default: 60)
 	convert: "EUR" // Convert price to different currencies. (Default USD)
 }
-var coinmarketcap = new CoinMarketCap.events(options); 
+var coinmarketcap = new CoinMarketCap(options); 
 
 // Put event for price greater or equal than X
 coinmarketcap.onGreater("BTC", 4000, (coin) => {
