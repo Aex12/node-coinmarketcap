@@ -47,7 +47,7 @@ class CoinMarketCap {
 			});
 
 			this.events_greater.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+				var res = coins.find(o => o.symbol === event.coin.toUpperCase()) || coins.find(o => o.id === event.coin.toLowerCase());
 				if(res){
 					if(res["price_"+this.convert] >= event.price){
 						event.callback(res)
@@ -110,7 +110,7 @@ class CoinMarketCap {
 			if(coins && callback){
 				var response = {};
 				response.data = coins;
-				response.get = function(coin){ return this.data.find(o => o.symbol === coin) || this.data.find(o => o.id === coin); }
+				response.get = function(coin){ return this.data.find(o => o.symbol === coin.toUpperCase()) || this.data.find(o => o.id === coin.toLowerCase()); }
 				response.getTop = function(top){return this.data.slice(0, top);}
 				response.getAll = function(){ return this.data; }
 				callback(response)
