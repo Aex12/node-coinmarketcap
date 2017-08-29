@@ -35,19 +35,24 @@ class CoinMarketCap {
 		});
 	}
 
+	_find(coins, coin){
+		return coins.find(o => o.symbol === coin.toUpperCase()) ||
+		       coins.find(o => o.id === coin.toLowerCase());
+	};
+
 	_emitter(){
 		this._getJSON(`/?convert=${this.convert}`, (coins) => {
 			if(!coins){ return false; }
 
 			this.events_update.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+				var res = this._find(coins, event.coin);
 				if(res){
 					event.callback(res)
 				}
 			});
 
 			this.events_greater.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin.toUpperCase()) || coins.find(o => o.id === event.coin.toLowerCase());
+				var res = this._find(coins, event.coin);
 				if(res){
 					if(res["price_"+this.convert] >= event.price){
 						event.callback(res)
@@ -56,7 +61,7 @@ class CoinMarketCap {
 			});
 
 			this.events_lesser.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+				var res = this._find(coins, event.coin);
 				if(res){
 					if(res["price_"+this.convert] <= event.price){
 						event.callback(res)
@@ -65,7 +70,7 @@ class CoinMarketCap {
 			});
 
 			this.events_percent1h.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+				var res = this._find(coins, event.coin);
 				if(res){
 					if(event.percent < 0 && res.percent_change_1h <= event.percent ){
 						event.callback(res)
@@ -78,7 +83,7 @@ class CoinMarketCap {
 			});
 
 			this.events_percent24h.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+				var res = this._find(coins, event.coin);
 				if(res){
 					if(event.percent < 0 && res.percent_change_24h <= event.percent ){
 						event.callback(res)
@@ -91,7 +96,7 @@ class CoinMarketCap {
 			});
 
 			this.events_percent7d.forEach(event => {
-				var res = coins.find(o => o.symbol === event.coin) || coins.find(o => o.id === event.coin);
+				var res = this._find(coins, event.coin);
 				if(res){
 					if(event.percent < 0 && res.percent_change_7d <= event.percent ){
 						event.callback(res)
