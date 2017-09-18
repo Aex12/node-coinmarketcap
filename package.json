@@ -1,6 +1,6 @@
 {
   "name": "node-coinmarketcap",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Node module to retrieve information from CoinMarketCap",
   "main": "index.js",
   "scripts": {

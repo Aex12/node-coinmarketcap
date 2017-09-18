@@ -9,12 +9,7 @@ class CoinMarketCap {
 		this.events = options.events || false;
 		if(this.events){
 			this.refresh = options.refresh*1000 || 60*1000;
-			this.events_update = [];
-			this.events_greater = [];
-			this.events_lesser = [];
-			this.events_percent1h = [];
-			this.events_percent24h = [];
-			this.events_percent7d = [];
+			this.events = [];
 			this._emitter();
 			setInterval(this._emitter.bind(this), this.refresh);
 		}
@@ -44,66 +39,66 @@ class CoinMarketCap {
 		this._getJSON(`/?convert=${this.convert}`, (coins) => {
 			if(!coins){ return false; }
 
-			this.events_update.forEach(event => {
+			this.events.filter(e => e.type == "update").forEach(event => {
 				var res = this._find(coins, event.coin);
 				if(res){
-					event.callback(res)
+					event.callback(res, event)
 				}
 			});
 
-			this.events_greater.forEach(event => {
+			this.events.filter(e => e.type == "greater").forEach(event => {
 				var res = this._find(coins, event.coin);
 				if(res){
 					if(res["price_"+this.convert] >= event.price){
-						event.callback(res)
+						event.callback(res, event)
 					}
 				}
 			});
 
-			this.events_lesser.forEach(event => {
+			this.events.filter(e => e.type == "lesser").forEach(event => {
 				var res = this._find(coins, event.coin);
 				if(res){
 					if(res["price_"+this.convert] <= event.price){
-						event.callback(res)
+						event.callback(res, event)
 					}
 				}
 			});
 
-			this.events_percent1h.forEach(event => {
+			this.events.filter(e => e.type == "percent1h").forEach(event => {
 				var res = this._find(coins, event.coin);
 				if(res){
 					if(event.percent < 0 && res.percent_change_1h <= event.percent ){
-						event.callback(res)
+						event.callback(res, event)
 					} else if(event.percent > 0 && res.percent_change_1h >= event.percent){
-						event.callback(res)
+						event.callback(res, event)
 					} else if(event.percent == 0 && res.percent_change_1h == 0){
-						event.callback(res)
+						event.callback(res, event)
 					}
 				}
 			});
 
-			this.events_percent24h.forEach(event => {
+			this.events.filter(e => e.type == "percent24h").forEach(event => {
 				var res = this._find(coins, event.coin);
 				if(res){
 					if(event.percent < 0 && res.percent_change_24h <= event.percent ){
-						event.callback(res)
+						event.callback(res, event)
 					} else if(event.percent > 0 && res.percent_change_24h >= event.percent){
-						event.callback(res)
+						event.callback(res, event)
 					} else if(event.percent == 0 && res.percent_change_24h == 0){
-						event.callback(res)
+						event.callback(res, event)
 					}
 				}
 			});
 
-			this.events_percent7d.forEach(event => {
+			this.events.filter(e => e.type == "percent7d").forEach(event => {
 				var res = this._find(coins, event.coin);
 				if(res){
 					if(event.percent < 0 && res.percent_change_7d <= event.percent ){
-						event.callback(res)
+						event.callback(res, event)
 					} else if(event.percent > 0 && res.percent_change_7d >= event.percent){
-						event.callback(res)
+						event.callback(res, event)
 					} else if(event.percent == 0 && res.percent_change_7d == 0){
-						event.callback(res)
+						event.callback(res, event)
 					}
 				}
 			});
@@ -155,7 +150,7 @@ class CoinMarketCap {
 
 	on(coin, callback){
 		if(this.events){
-			this.events_update.push({coin, callback});
+			this.events.push({coin, callback, type: "update"});
 		} else {
 			return false;
 		}
@@ -163,7 +158,7 @@ class CoinMarketCap {
 
 	onGreater(coin, price, callback){
 		if(this.events){
-			this.events_greater.push({coin, price, callback});
+			this.events.push({coin, price, callback, type: "greater"});
 		} else {
 			return false;
 		}
@@ -171,7 +166,7 @@ class CoinMarketCap {
 
 	onLesser(coin, price, callback){
 		if(this.events){
-			this.events_lesser.push({coin, price, callback});
+			this.events.push({coin, price, callback, type: "lesser"});
 		} else {
 			return false;
 		}
@@ -179,7 +174,7 @@ class CoinMarketCap {
 
 	onPercentChange1h(coin, percent, callback){
 		if(this.events){
-			this.events_percent1h.push({coin, percent, callback});
+			this.events.push({coin, percent, callback, type: "percent1h"});
 		} else {
 			return false;
 		}
@@ -187,7 +182,7 @@ class CoinMarketCap {
 
 	onPercentChange24h(coin, percent, callback){
 		if(this.events){
-			this.events_percent24h.push({coin, percent, callback});
+			this.events.push({coin, percent, callback, type: "percent24h"});
 		} else {
 			return false;
 		}
@@ -195,10 +190,15 @@ class CoinMarketCap {
 
 	onPercentChange7d(coin, percent, callback){
 		if(this.events){
-			this.events_percent7d.push({coin, percent, callback});
+			this.events.push({coin, percent, callback, type: "percent7d"});
 		} else {
 			return false;
 		}
+	}
+
+	deleteEvent(event){
+		this.events.splice(this.events.indexOf(event), 1);
+		return this;
 	}
 }
 
