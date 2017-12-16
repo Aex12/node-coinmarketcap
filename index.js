@@ -36,7 +36,7 @@ class CoinMarketCap {
 	};
 
 	_emitter(){
-		this._getJSON(`/?convert=${this.convert}`, (coins) => {
+		this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
 			if(!coins){ return false; }
 
 			this.events.filter(e => e.type == "update").forEach(event => {
@@ -106,7 +106,7 @@ class CoinMarketCap {
 	}
 
 	multi(callback){
-		this._getJSON(`/?convert=${this.convert}`, (coins) => {
+		this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
 			if(coins && callback){
 				var response = {};
 				response.data = coins;
@@ -132,7 +132,7 @@ class CoinMarketCap {
 
 	getAll(callback){
 		if(callback){
-			this._getJSON(`/?convert=${this.convert}`, callback);
+			this._getJSON(`/?convert=${this.convert}&limit=0`, callback);
 			return this;
 		} else {
 			return false;
