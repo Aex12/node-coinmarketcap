@@ -17,7 +17,7 @@ class CoinMarketCap {
 
 	_getJSON(url, callback){
 		request(this.API_URL+url, (error, response, body) => {
-			if(error){ 
+			if(error){
 				callback(false);
 				return this;
 			}
@@ -142,6 +142,16 @@ class CoinMarketCap {
 	getTop(top, callback){
 		if(callback){
 			this._getJSON(`/?convert=${this.convert}&limit=${top}`, callback);
+			return this;
+		} else {
+			return false;
+		}
+	}
+
+	getPage(page, callback){
+		if(callback){
+			let start = (page - 1) * 100;
+			this._getJSON(`/?convert=${this.convert}&start=${start}&limit=100`, callback);
 			return this;
 		} else {
 			return false;
