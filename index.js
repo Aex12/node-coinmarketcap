@@ -22,7 +22,14 @@ class CoinMarketCap {
 				return this;
 			}
 			if(response && response.statusCode == 200){
-				callback(JSON.parse(body))
+				var data;
+				try {
+					data = JSON.parse(body);
+				} catch (err) {
+					// Don't crash on unexpected JSON
+					data = false;
+				}
+				callback(data)
 			} else {
 				callback(false);
 				return this;
