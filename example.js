@@ -1,10 +1,10 @@
-var CoinMarketCap = require(".")
+var CoinMarketCap = require(".");
 
 var options = {
 	events: true,
 	refresh: 60, // Refresh time in seconds (Default: 60)
 	convert: "EUR" // Convert price to different currencies. (Default USD)
-}
+};
 var coinmarketcap = new CoinMarketCap(options); 
 
 // Put event for price greater or equal than X
@@ -36,6 +36,6 @@ coinmarketcap.onPercentChange1h("LTC", 10, (coin, event) => {
 
 // Put event on BTC with no conditions. It will trigger every 60 seconds (*) with information about that coin (*: Or the defined time in options)
 coinmarketcap.on("BTC", (coin, event) => {
-	console.log(coin)
+	console.log(coin);
 	coinmarketcap.deleteEvent(event); // Deletes the event
 });

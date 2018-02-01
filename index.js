@@ -2,221 +2,241 @@ var request = require('request');
 
 class CoinMarketCap {
 
-	constructor(options={}){
-		this.API_URL = options.API_URL || "https://api.coinmarketcap.com/v1/ticker";
-		this.convert = options.convert || "USD";
-		this.convert = this.convert.toLowerCase();
-		this.events = options.events || false;
-		if(this.events){
-			this.refresh = options.refresh*1000 || 60*1000;
-			this.events = [];
-			this._emitter();
-			setInterval(this._emitter.bind(this), this.refresh);
-		}
-	}
+    constructor(options={}){
+        this.API_URL = options.API_URL || "https://api.coinmarketcap.com/v1/ticker";
+        this.convert = options.convert || "USD";
+        this.convert = this.convert.toLowerCase();
+        this.events = options.events || false;
+        if(this.events){
+            this.refresh = options.refresh*1000 || 60*1000;
+            this.events = [];
+            this._emitter();
+            setInterval(this._emitter.bind(this), this.refresh);
+        }
+    }
 
-	_getJSON(url, callback){
-		request(this.API_URL+url, (error, response, body) => {
-			if(error){
-				callback(false);
-				return this;
-			}
-			if(response && response.statusCode == 200){
-				var data;
-				try {
-					data = JSON.parse(body);
-				} catch (err) {
-					// Don't crash on unexpected JSON
-					data = false;
-				}
-				callback(data)
-			} else {
-				callback(false);
-				return this;
-			}
-		});
-	}
+    _getJSON(url, callback){
+        request(this.API_URL+url, (error, response, body) => {
+            if(error){
+                callback(false);
+                return this;
+            }
+            if(response && response.statusCode == 200){
+                var data;
+                try {
+                    data = JSON.parse(body);
+                } catch (err) {
+                    // Don't crash on unexpected JSON
+                    data = false;
+                }
+                callback(data);
+            } else {
+                callback(false);
+                return this;
+            }
+        });
+    }
 
-	_find(coins, coin){
-		return coins.find(o => o.symbol === coin.toUpperCase()) ||
-		       coins.find(o => o.id === coin.toLowerCase());
-	};
+    _find(coins, coin){
+        return coins.find(o => o.symbol === coin.toUpperCase()) ||
+            coins.find(o => o.id === coin.toLowerCase());
+    }
 
-	_emitter(){
-		this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
-			if(!coins){ return false; }
+    _emitter(){
+        this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
+            if(!coins){ return false; }
 
-			this.events.filter(e => e.type == "update").forEach(event => {
-				var res = this._find(coins, event.coin);
-				if(res){
-					event.callback(res, event)
-				}
-			});
+            this.events.filter(e => e.type == "multi").forEach(event => {
+                if(coins){
 
-			this.events.filter(e => e.type == "greater").forEach(event => {
-				var res = this._find(coins, event.coin);
-				if(res){
-					if(res["price_"+this.convert] >= event.price){
-						event.callback(res, event)
-					}
-				}
-			});
+                    var response = {};
+                    response.data = coins;
+                    response.get = function(coin){ return coins.find(o => o.symbol === coin.toUpperCase()) || coins.find(o => o.id === coin.toLowerCase()); };
+                    response.getTop = function(top){return coins.slice(0, top);};
+                    response.getAll = function(){ return coins; };
+                    event.callback(response, event);
+                }
+            });
 
-			this.events.filter(e => e.type == "lesser").forEach(event => {
-				var res = this._find(coins, event.coin);
-				if(res){
-					if(res["price_"+this.convert] <= event.price){
-						event.callback(res, event)
-					}
-				}
-			});
+            this.events.filter(e => e.type == "update").forEach(event => {
+                var res = this._find(coins, event.coin);
+                if(res){
+                    event.callback(res, event);
+                }
+            });
 
-			this.events.filter(e => e.type == "percent1h").forEach(event => {
-				var res = this._find(coins, event.coin);
-				if(res){
-					if(event.percent < 0 && res.percent_change_1h <= event.percent ){
-						event.callback(res, event)
-					} else if(event.percent > 0 && res.percent_change_1h >= event.percent){
-						event.callback(res, event)
-					} else if(event.percent == 0 && res.percent_change_1h == 0){
-						event.callback(res, event)
-					}
-				}
-			});
+            this.events.filter(e => e.type == "greater").forEach(event => {
+                var res = this._find(coins, event.coin);
+                if(res){
+                    if(res["price_"+this.convert] >= event.price){
+                        event.callback(res, event);
+                    }
+                }
+            });
 
-			this.events.filter(e => e.type == "percent24h").forEach(event => {
-				var res = this._find(coins, event.coin);
-				if(res){
-					if(event.percent < 0 && res.percent_change_24h <= event.percent ){
-						event.callback(res, event)
-					} else if(event.percent > 0 && res.percent_change_24h >= event.percent){
-						event.callback(res, event)
-					} else if(event.percent == 0 && res.percent_change_24h == 0){
-						event.callback(res, event)
-					}
-				}
-			});
+            this.events.filter(e => e.type == "lesser").forEach(event => {
+                var res = this._find(coins, event.coin);
+                if(res){
+                    if(res["price_"+this.convert] <= event.price){
+                        event.callback(res, event);
+                    }
+                }
+            });
 
-			this.events.filter(e => e.type == "percent7d").forEach(event => {
-				var res = this._find(coins, event.coin);
-				if(res){
-					if(event.percent < 0 && res.percent_change_7d <= event.percent ){
-						event.callback(res, event)
-					} else if(event.percent > 0 && res.percent_change_7d >= event.percent){
-						event.callback(res, event)
-					} else if(event.percent == 0 && res.percent_change_7d == 0){
-						event.callback(res, event)
-					}
-				}
-			});
-		});
-	}
+            this.events.filter(e => e.type == "percent1h").forEach(event => {
+                var res = this._find(coins, event.coin);
+                if(res){
+                    if(event.percent < 0 && res.percent_change_1h <= event.percent ){
+                        event.callback(res, event);
+                    } else if(event.percent > 0 && res.percent_change_1h >= event.percent){
+                        event.callback(res, event);
+                    } else if(event.percent == 0 && res.percent_change_1h == 0){
+                        event.callback(res, event);
+                    }
+                }
+            });
 
-	multi(callback){
-		this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
-			if(coins && callback){
-				var response = {};
-				response.data = coins;
-				response.get = function(coin){ return this.data.find(o => o.symbol === coin.toUpperCase()) || this.data.find(o => o.id === coin.toLowerCase()); }
-				response.getTop = function(top){return this.data.slice(0, top);}
-				response.getAll = function(){ return this.data; }
-				callback(response)
-			}
-		});
-		return this;
-	}
+            this.events.filter(e => e.type == "percent24h").forEach(event => {
+                var res = this._find(coins, event.coin);
+                if(res){
+                    if(event.percent < 0 && res.percent_change_24h <= event.percent ){
+                        event.callback(res, event);
+                    } else if(event.percent > 0 && res.percent_change_24h >= event.percent){
+                        event.callback(res, event);
+                    } else if(event.percent == 0 && res.percent_change_24h == 0){
+                        event.callback(res, event);
+                    }
+                }
+            });
 
-	get(coin, callback){
-		if(callback){
-			this._getJSON(`/${coin}/?convert=${this.convert}`, (res) => {
-				if(res){callback(res[0]);}
-			});
-			return this;
-		} else {
-			return false;
-		}
-	}
+            this.events.filter(e => e.type == "percent7d").forEach(event => {
+                var res = this._find(coins, event.coin);
+                if(res){
+                    if(event.percent < 0 && res.percent_change_7d <= event.percent ){
+                        event.callback(res, event);
+                    } else if(event.percent > 0 && res.percent_change_7d >= event.percent){
+                        event.callback(res, event);
+                    } else if(event.percent == 0 && res.percent_change_7d == 0){
+                        event.callback(res, event);
+                    }
+                }
+            });
+        });
+    }
 
-	getAll(callback){
-		if(callback){
-			this._getJSON(`/?convert=${this.convert}&limit=0`, callback);
-			return this;
-		} else {
-			return false;
-		}
-	}
+    multi(callback){
+        this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
+            if(coins && callback){
+                var response = {};
+                response.data = coins;
+                response.get = function(coin){ return this.data.find(o => o.symbol === coin.toUpperCase()) || this.data.find(o => o.id === coin.toLowerCase()); };
+                response.getTop = function(top){return this.data.slice(0, top);};
+                response.getAll = function(){ return this.data; };
+                callback(response);
+            }
+        });
+        return this;
+    }
 
-	getTop(top, callback){
-		if(callback){
-			this._getJSON(`/?convert=${this.convert}&limit=${top}`, callback);
-			return this;
-		} else {
-			return false;
-		}
-	}
+    get(coin, callback){
+        if(callback){
+            this._getJSON(`/${coin}/?convert=${this.convert}`, (res) => {
+                if(res){callback(res[0]);}
+            });
+            return this;
+        } else {
+            return false;
+        }
+    }
 
-	getPage(page, callback){
-		if(callback){
-			let start = (page - 1) * 100;
-			this._getJSON(`/?convert=${this.convert}&start=${start}&limit=100`, callback);
-			return this;
-		} else {
-			return false;
-		}
-	}
+    getAll(callback){
+        if(callback){
+            this._getJSON(`/?convert=${this.convert}&limit=0`, callback);
+            return this;
+        } else {
+            return false;
+        }
+    }
 
-	on(coin, callback){
-		if(this.events){
-			this.events.push({coin, callback, type: "update"});
-		} else {
-			return false;
-		}
-	}
+    getTop(top, callback){
+        if(callback){
+            this._getJSON(`/?convert=${this.convert}&limit=${top}`, callback);
+            return this;
+        } else {
+            return false;
+        }
+    }
 
-	onGreater(coin, price, callback){
-		if(this.events){
-			this.events.push({coin, price, callback, type: "greater"});
-		} else {
-			return false;
-		}
-	}
+    getPage(page, callback){
+        if(callback){
+            let start = (page - 1) * 100;
+            this._getJSON(`/?convert=${this.convert}&start=${start}&limit=100`, callback);
+            return this;
+        } else {
+            return false;
+        }
+    }
 
-	onLesser(coin, price, callback){
-		if(this.events){
-			this.events.push({coin, price, callback, type: "lesser"});
-		} else {
-			return false;
-		}
-	}
+    onMulti(callback){
+        if(this.events){
+            this.events.push({callback, type: "multi"});
+        } else {
+            return false;
+        }
+    }
 
-	onPercentChange1h(coin, percent, callback){
-		if(this.events){
-			this.events.push({coin, percent, callback, type: "percent1h"});
-		} else {
-			return false;
-		}
-	}
+    on(coin, callback){
+        if(this.events){
+            this.events.push({coin, callback, type: "update"});
+        } else {
+            return false;
+        }
+    }
 
-	onPercentChange24h(coin, percent, callback){
-		if(this.events){
-			this.events.push({coin, percent, callback, type: "percent24h"});
-		} else {
-			return false;
-		}
-	}
+    onGreater(coin, price, callback){
+        if(this.events){
+            this.events.push({coin, price, callback, type: "greater"});
+        } else {
+            return false;
+        }
+    }
 
-	onPercentChange7d(coin, percent, callback){
-		if(this.events){
-			this.events.push({coin, percent, callback, type: "percent7d"});
-		} else {
-			return false;
-		}
-	}
+    onLesser(coin, price, callback){
+        if(this.events){
+            this.events.push({coin, price, callback, type: "lesser"});
+        } else {
+            return false;
+        }
+    }
 
-	deleteEvent(event){
-		this.events.splice(this.events.indexOf(event), 1);
-		return this;
-	}
+    onPercentChange1h(coin, percent, callback){
+        if(this.events){
+            this.events.push({coin, percent, callback, type: "percent1h"});
+        } else {
+            return false;
+        }
+    }
+
+    onPercentChange24h(coin, percent, callback){
+        if(this.events){
+            this.events.push({coin, percent, callback, type: "percent24h"});
+        } else {
+            return false;
+        }
+    }
+
+    onPercentChange7d(coin, percent, callback){
+        if(this.events){
+            this.events.push({coin, percent, callback, type: "percent7d"});
+        } else {
+            return false;
+        }
+    }
+
+    deleteEvent(event){
+        this.events.splice(this.events.indexOf(event), 1);
+        return this;
+    }
 }
 
 module.exports = CoinMarketCap;

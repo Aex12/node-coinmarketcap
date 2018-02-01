@@ -53,5 +53,16 @@ coinmarketcap.onPercentChange24h("BTC", 20, (coin) => {
 coinmarketcap.on("BTC", (coin) => {
 	console.log(coin);
 });
+
+
+// Trigger this event every 60 seconds to get currency information
+coinmarketcap.onMulti((coins, event) => {
+	console.log("Refreshing data...");
+    console.log(coins.get("BTC").price_usd); // Prints price of BTC in USD
+    console.log(coins.get("ETH").price_usd); // Print price of ETH in USD
+    console.log(coins.get("ETH").price_btc); // Print price of ETH in BTC
+    console.log(coins.getTop(10)); // Prints information about top 10 cryptocurrencies
+});
+
 ```
 For a full list of examples with events, visit: https://github.com/Aex12/node-coinmarketcap/blob/master/example.js
