@@ -3,7 +3,7 @@ var request = require('request');
 class CoinMarketCap {
 
     constructor(options={}){
-        this.API_URL = options.API_URL || "https://api.coinmarketcap.com/v1/ticker";
+        this.API_URL = options.API_URL || "https://api.coinmarketcap.com/v1";
         this.convert = options.convert || "USD";
         this.convert = this.convert.toLowerCase();
         this.events = options.events || false;
@@ -43,7 +43,7 @@ class CoinMarketCap {
     }
 
     _emitter(){
-        this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
+        this._getJSON(`/ticker/?convert=${this.convert}&limit=0`, (coins) => {
             if(!coins){ return false; }
 
             this.events.filter(e => e.type == "multi").forEach(event => {
@@ -125,7 +125,7 @@ class CoinMarketCap {
     }
 
     multi(callback){
-        this._getJSON(`/?convert=${this.convert}&limit=0`, (coins) => {
+        this._getJSON(`/ticker/?convert=${this.convert}&limit=0`, (coins) => {
             if(coins && callback){
                 var response = {};
                 response.data = coins;
@@ -138,9 +138,20 @@ class CoinMarketCap {
         return this;
     }
 
+    getGlobalData(callback){
+        if(callback){
+            this._getJSON(`/global/?convert=${this.convert}`, (res) => {
+                if(res){callback(res);}
+            });
+            return this;
+        } else {
+            return false;
+        }
+    }
+
     get(coin, callback){
         if(callback){
-            this._getJSON(`/${coin}/?convert=${this.convert}`, (res) => {
+            this._getJSON(`/ticker/${coin}/?convert=${this.convert}`, (res) => {
                 if(res){callback(res[0]);}
             });
             return this;
@@ -151,7 +162,7 @@ class CoinMarketCap {
 
     getAll(callback){
         if(callback){
-            this._getJSON(`/?convert=${this.convert}&limit=0`, callback);
+            this._getJSON(`/ticker/?convert=${this.convert}&limit=0`, callback);
             return this;
         } else {
             return false;
@@ -160,7 +171,7 @@ class CoinMarketCap {
 
     getTop(top, callback){
         if(callback){
-            this._getJSON(`/?convert=${this.convert}&limit=${top}`, callback);
+            this._getJSON(`/ticker/?convert=${this.convert}&limit=${top}`, callback);
             return this;
         } else {
             return false;
@@ -170,7 +181,7 @@ class CoinMarketCap {
     getPage(page, callback){
         if(callback){
             let start = (page - 1) * 100;
-            this._getJSON(`/?convert=${this.convert}&start=${start}&limit=100`, callback);
+            this._getJSON(`/ticker/?convert=${this.convert}&start=${start}&limit=100`, callback);
             return this;
         } else {
             return false;

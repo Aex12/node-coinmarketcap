@@ -26,6 +26,11 @@ coinmarketcap.multi(coins => {
   console.log(coins.get("ETH").price_btc); // Print price of ETH in BTC
   console.log(coins.getTop(10)); // Prints information about top 10 cryptocurrencies
 });
+
+// Get Global Market Data
+coinmarketcap.getGlobalData( (globalData) => {
+    console.log(globalData);
+});
 ```
 ## Usage Example with Events
 
