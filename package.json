@@ -1,29 +1,33 @@
 {
-  "name": "node-coinmarketcap",
-  "version": "0.2.0",
-  "description": "Node module to retrieve information from CoinMarketCap",
+  "name": "coinmarketcap-node-api-events",
+  "version": "0.1.0",
+  "description": "A NodeJS module to connect to CoinMarketCap REST API.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Aex12/node-coinmarketcap.git"
+    "url": "git+https://github.com/hvmonteiro/coinmarketcap-node-api-events.git"
   },
   "keywords": [
     "coinmarketcap",
     "cryptocurrencies",
     "cryptocoins",
     "analytics",
-    "api"
+    "api",
+    "rest",
+    "events"
   ],
-  "author": "Alex Caston",
+  "author": "Hugo V. Monteiro",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Aex12/node-coinmarketcap/issues"
+    "url": "https://github.com/hvmonteiro/coinmarketcap-node-api-events/issues"
   },
-  "homepage": "https://github.com/Aex12/node-coinmarketcap#readme",
+  "homepage": "https://github.com/hvmonteiro/coinmarketcap-node-api-events#readme",
   "dependencies": {
     "request": "^2.81.0"
-  }
+  },
+  "contributors": [
+    {"name":"Alex Caston","url":"hhttps://github.com/Aex12"},
 }
