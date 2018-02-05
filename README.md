@@ -1,18 +1,31 @@
-# node-coinmarketcap
+# About
 
-A node module to connect to CoinMarketCap API and retrieve prices and statistics of cryptocurrencies.
+*node-coinmarketcap* is a nodeJs module to get market data from CoinMarketCap.com by means of connection to their REST API and retrieve prices and statistics of cryptocurrencies.
 
-It supports events to get alerts on price status.
+It supports events to get alerts on price status at a predefined interval.
+
+Originally based on the simple yet very well written [node-coinmarketcap](https://github.com/Aex12/node-coinmarketcap).
 
 ## Installation
 
 ```console
-$ npm install node-coinmarketcap
+$ npm install coinmarketcap-node-api-events
 ```
 
-## Usage Example
+## Quick Usage Example:
 ```js
-var CoinMarketCap = require("node-coinmarketcap");
+var CoinMarketCap = require("coinmarketcap-node-api-events");
+var coinmarketcap = new CoinMarketCap();
+// If you want to check a single coin, use get() (You need to supply the coinmarketcap id of the cryptocurrency, not the symbol)
+// If you want to use symbols instead of id, use multi.
+coinmarketcap.get("bitcoin", coin => {
+  console.log(coin.price_usd); // Prints the price in USD of BTC at the moment.
+});
+```
+
+## More Complete Usage Example:
+```js
+var CoinMarketCap = require("coinmarketcap-node-api-events");
 var coinmarketcap = new CoinMarketCap();
 // If you want to check a single coin, use get() (You need to supply the coinmarketcap id of the cryptocurrency, not the symbol)
 // If you want to use symbols instead of id, use multi.
@@ -32,10 +45,11 @@ coinmarketcap.getGlobalData( (globalData) => {
     console.log(globalData);
 });
 ```
-## Usage Example with Events
+
+## Usage Example with Events:
 
 ```js
-var CoinMarketCap = require("node-coinmarketcap");
+var CoinMarketCap = require("coinmarketcap-node-api-events");
 
 var options = {
 	events: true, // Enable event system
@@ -70,4 +84,4 @@ coinmarketcap.onMulti((coins, event) => {
 });
 
 ```
-For a full list of examples with events, visit: https://github.com/Aex12/node-coinmarketcap/blob/master/example.js
+For a full list of examples with events, visit: https://github.com/hvmonteiro/coinmarketcap-node-api-events/blob/master/example.js
